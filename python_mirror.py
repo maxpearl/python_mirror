@@ -79,6 +79,8 @@ def store_page(page, page_url, path):
     full_path = parsed_url.path
     full_path = re.sub('//', '/', full_path)
     filename = full_path.split('/')[-1]
+    if '.html/' in full_path: # it's a parameter, skip it, but pretend it was stored.
+        return True
     if '.' not in filename: # it's a path, not a filename:
         filename = 'index.html'
         directory_path = full_path
