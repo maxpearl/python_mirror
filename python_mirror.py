@@ -8,11 +8,11 @@ from bs4 import BeautifulSoup
 import click
 
 @click.command()
-@click.option('--wait', default=0, help='Number of seconds to wait between requests.', type=int)
+@click.option('--wait', default=0, help='Number of seconds to wait between requests.', type=int) # Not implemented yetS
 @click.option('--path', default='.', help="Local path to store files. NO trailing slash!")
-@click.option('--subdomains', is_flag=True)
+@click.option('--subdomains', is_flag=True) # not implemented yet
 @click.option('--url', required=True, type=str, help='URL of site to mirror')
-@click.option('--replace_urls_str', type=str, help='URLs to replace with relative.')
+@click.option('--replace_urls_str', type=str, help='Comma delimited list of URLs to replace with relative.')
 
 def mirror(wait, subdomains, url, replace_urls_str, path):
     replace_urls = replace_urls_str.split(',')
