@@ -12,15 +12,17 @@ import click
 @click.option('--path', default='.', help="Local path to store files. NO trailing slash!")
 @click.option('--subdomains', is_flag=True)
 @click.option('--url', required=True, type=str, help='URL of site to mirror')
-@click.option('--replace_url', type=str, help='URL to replace with relative.')
+@click.option('--replace_urls_str', type=str, help='URLs to replace with relative.')
 
-def mirror(wait, subdomains, url, replace_url, path):
+def mirror(wait, subdomains, url, replace_urls_str, path):
+    replace_urls = replace_urls_str.split(',')
+    print(f"Replace urls: {replace_urls}")
     followed_links = []
     if path[-1] == '/':
         print("No trailing slash in path!")
         return
-    if not replace_url:
-        replace_url = url
+    if not replace_urls:
+        replace_urls = [url]
     url_netloc = urlparse(url).netloc
     url_scheme = urlparse(url).scheme
     url_queue = [url]
@@ -29,6 +31,8 @@ def mirror(wait, subdomains, url, replace_url, path):
         get_url = url_queue.pop(0)
         parsed_get_url = urlparse(get_url)
         print(parsed_get_url)
+        if parsed_get_url.path == '/': # Skip
+            continue
         if not parsed_get_url.netloc: #relative link
             new_get_url = url_scheme + '://' + url_netloc + '/' + get_url
         elif not parsed_get_url.scheme: #missing scheme
@@ -62,7 +66,8 @@ def mirror(wait, subdomains, url, replace_url, path):
                 links=links,
                 followed=followed_links)
             new_page = soup.prettify()
-            new_page = re.sub(replace_url, '', new_page)
+            for replace_url in replace_urls:
+                new_page = re.sub(replace_url, '', new_page)
             stored = store_page(new_page, page_url, path)
             if stored:
                 followed_links.append(get_url)
@@ -86,7 +91,10 @@ def store_page(page, page_url, path):
         directory_path = full_path
     else:
         directory_path = full_path.rsplit('/',1)[0]
-    if directory_path[-1] != '/':
+    print(f"URL: {page_url} - Directory Path: {directory_path}")
+    if not directory_path:
+        local_path = path + directory_path + '/' + filename
+    elif directory_path[-1] != '/':
         local_path = path + directory_path + '/' + filename
     else:
         local_path = path + directory_path + filename
