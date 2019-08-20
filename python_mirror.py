@@ -35,7 +35,7 @@ def mirror(wait, subdomains, url, replace_urls_str, path):
             continue
         if not parsed_get_url.netloc: #relative link
             new_get_url = url_scheme + '://' + url_netloc + '/' + get_url
-        elif not parsed_get_url.scheme: #missing scheme
+        elif ((not parsed_get_url.scheme) or (parsed_get_url.scheme not in ['http', 'https'])): #missing scheme
             new_get_url = url_scheme + ':' + get_url
         else:
             new_get_url = get_url
