@@ -13,13 +13,16 @@ import click
 @click.option('--subdomains', is_flag=True) # not implemented yet
 @click.option('--url', required=True, type=str, help='URL of site to mirror')
 @click.option('--replace_urls_str', type=str, help='Comma delimited list of URLs to replace with relative.')
+@click.option('--debug', is_flag=True, default=False)
 
-def mirror(wait, subdomains, url, replace_urls_str, path):
+def mirror(wait, subdomains, url, replace_urls_str, path, debug):
     replace_urls = replace_urls_str.split(',')
-    print(f"Replace urls: {replace_urls}")
+    if debug:
+        print(f"Replace urls: {replace_urls}")
     followed_links = []
     if path[-1] == '/':
-        print("No trailing slash in path!")
+        if debug:
+            print("No trailing slash in path!")
         return
     if not replace_urls:
         replace_urls = [url]
@@ -27,16 +30,18 @@ def mirror(wait, subdomains, url, replace_urls_str, path):
     url_scheme = urlparse(url).scheme
     url_queue = [url]
     while url_queue:
-        print(f"followed: {len(followed_links)}, queue: {len(url_queue)}")
+        if debug:
+            print(f"followed: {len(followed_links)}, queue: {len(url_queue)}")
         get_url = url_queue.pop(0)
         parsed_get_url = urlparse(get_url)
-        print(parsed_get_url)
+        if debug:
+            print(parsed_get_url)
         if parsed_get_url.path == '/': # Skip
             continue
         if not parsed_get_url.netloc: #relative link
             new_get_url = url_scheme + '://' + url_netloc + '/' + get_url
         elif ((not parsed_get_url.scheme) or (parsed_get_url.scheme not in ['http', 'https'])): #missing scheme
-            new_get_url = url_scheme + ':' + get_url
+            new_get_url = url_scheme + '://' + parsed_get_url.netloc + '/' + parsed_get_url.path
         else:
             new_get_url = get_url
         page = requests.get(new_get_url, allow_redirects=True)
@@ -46,7 +51,7 @@ def mirror(wait, subdomains, url, replace_urls_str, path):
         content_type = page.headers.get('content-type')
         if 'html' not in content_type:
             # Just download it and store it
-            store_page(page, page_url, path)
+            store_page(page, page_url, path, debug)
         else:
             soup = BeautifulSoup(page.text, 'html.parser')
             links = soup.find_all('a')
@@ -68,15 +73,16 @@ def mirror(wait, subdomains, url, replace_urls_str, path):
             new_page = soup.prettify()
             for replace_url in replace_urls:
                 new_page = re.sub(replace_url, '', new_page)
-            stored = store_page(new_page, page_url, path)
+            stored = store_page(new_page, page_url, path, debug)
             if stored:
                 followed_links.append(get_url)
             else:
-                print("Not stored!")
+                if debug:
+                    print("Not stored!")
                 return
     return
 
-def store_page(page, page_url, path):
+def store_page(page, page_url, path, debug):
     # Store page 
     if isinstance(page, str): # a parsed page
         page_text = page
@@ -91,14 +97,12 @@ def store_page(page, page_url, path):
         directory_path = full_path
     else:
         directory_path = full_path.rsplit('/',1)[0]
-    print(f"URL: {page_url} - Directory Path: {directory_path}")
     if not directory_path:
         local_path = path + directory_path + '/' + filename
     elif directory_path[-1] != '/':
         local_path = path + directory_path + '/' + filename
     else:
         local_path = path + directory_path + filename
-    print(f"File Details: path: {path} url: {page_url} full path: {full_path}, local: {local_path}, directory: {directory_path}, filename {filename} ")
 
     if directory_path:
         local_directory_path = path + directory_path
@@ -106,7 +110,8 @@ def store_page(page, page_url, path):
             try:
                 os.makedirs(local_directory_path, exist_ok=True)
             except OSError as e:
-                print(f"Couldn't make the directory! {local_directory_path}: {e}")
+                if debug:
+                    print(f"Couldn't make the directory! {local_directory_path}: {e}")
                 return False
 
     image_suffix_list = ['jpg', 'gif', 'png', 'jpeg']
@@ -116,21 +121,24 @@ def store_page(page, page_url, path):
             with iopen(local_path, 'wb') as f:
                 f.write(page.content)
         except Exception as e:
-            print(f"Couldn't write file! {e}")
+            if debug:
+                print(f"Couldn't write file! {e}")
             return False
     elif not isinstance(page, str): #other file save
         try:
             with open(local_path, 'w') as f:
                 f.write(page.text)
         except Exception as e:
-            print(f"Couldn't write file! {e}")
+            if debug:
+                print(f"Couldn't write file! {e}")
             return False
     else:
         try:
             with open(local_path, 'w') as f:
                 f.write(page_text)
         except Exception as e:
-            print(f"Couldn't write file! {e}")
+            if debug:
+                print(f"Couldn't write file! {e}")
             return False
 
     return True
@@ -163,8 +171,7 @@ def process_links(**kwargs):
                     new_item = False
             if new_item:
                 queue.append(link_href)
-           
-    print(f"Number of links: {len(queue)}")
+
     return queue
 
 if __name__ == '__main__':

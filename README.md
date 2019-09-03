@@ -1,12 +1,13 @@
 # Python Mirror
 
-Designed to do one job: mirror a website and re-write any hard-coded URLs to relative. 
+Designed to do one job: mirror a website and re-write any hard-coded URLs to relative on the fly. 
 
 # Run options
 
 - --path=local_path - where to store the pages
 - --url=url - url to mirror
 - --replace_urls_string=url_to_replace,url_to_replace - comma separated (no spaces) list of urls to replace with relative links (like http://www.example.com,http://example.com,https://www.example.com,http://example.com)
+- --debug - print out debug statements. Otherwise the app runs silently.
 
 # Caveats
 
@@ -16,4 +17,5 @@ This is pretty unelegant, and needs tweaking to be widely useful, but the main t
 
 - Better parsing and error checking
 - Implement a wait in case of throttling
+- Possibly implement a random wait time between grabbing pages
 - Implement mirroring subdomains as well as main domain
