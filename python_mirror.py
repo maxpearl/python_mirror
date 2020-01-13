@@ -1,6 +1,7 @@
 import time
 import re
 import os
+import random
 from io import open as iopen
 from urllib.parse import urlparse, urlsplit
 import requests
@@ -8,7 +9,7 @@ from bs4 import BeautifulSoup
 import click
 
 @click.command()
-@click.option('--wait', default=0, help='Number of seconds to wait between requests.', type=int) # Not implemented yetS
+@click.option('--wait', default=0, help='Number of seconds to wait between requests. -1 for random', type=int)
 @click.option('--path', default='.', help="Local path to store files. NO trailing slash!")
 @click.option('--subdomains', is_flag=True) # not implemented yet
 @click.option('--url', required=True, type=str, help='URL of site to mirror')
@@ -45,6 +46,11 @@ def mirror(wait, subdomains, url, replace_urls_str, path, debug):
         else:
             new_get_url = get_url
         page = requests.get(new_get_url, allow_redirects=True)
+        # Wait
+        if (wait != 0) and (wait != -1):
+            time.sleep(wait)
+        elif wait == -1:
+            time.sleep(random.random()*2)
         if page.status_code != 200:
             continue
         page_url = page.url

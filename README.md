@@ -8,6 +8,7 @@ Designed to do one job: mirror a website and re-write any hard-coded URLs to rel
 - --url=url - url to mirror
 - --replace_urls_string=url_to_replace,url_to_replace - comma separated (no spaces) list of urls to replace with relative links (like http://www.example.com,http://example.com,https://www.example.com,http://example.com)
 - --debug - print out debug statements. Otherwise the app runs silently.
+- --wait - wait time between requests. -1 for random wait between 0 and 2 seconds.
 
 # Caveats
 
