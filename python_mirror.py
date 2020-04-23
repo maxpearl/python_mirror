@@ -17,7 +17,10 @@ import click
 @click.option('--debug', is_flag=True, default=False)
 
 def mirror(wait, subdomains, url, replace_urls_str, path, debug):
-    replace_urls = replace_urls_str.split(',')
+    if replace_urls_str:
+        replace_urls = replace_urls_str.split(',')
+    else:
+        replace_urls = []
     if debug:
         print(f"Replace urls: {replace_urls}")
     followed_links = []
